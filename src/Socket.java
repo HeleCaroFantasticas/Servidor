@@ -53,13 +53,22 @@ class ServidorHTTPSimple extends Thread{
 				/**códigos de error*/
 				String camino=textFromClient;
 				camino=camino.replace("GET", "");
+				camino=camino.replace("POST", "");
 				camino=camino.replace("HTTP", "");
 				camino=camino.replace(" ", "");
 				camino=camino.replace("/1.1", "");
 				
 				String textToClient = "";
 				if (camino.length()==1){
-					textToClient = "HTTP/1.1 200 OK\r\n\r\nCuerpo\n\n";
+					textToClient = "HTTP/1.1 200 OK\r\n";//Cuerpo\n\n
+					/**Encabezados*/
+					String line = in.readLine();
+					while (!line.isEmpty()) {
+						System.out.println(line);
+						line = in.readLine();
+					}
+					
+					textToClient+="\n\n";
 				} else {
 					camino=camino.replace("/", "\\");
 					File f = new File(System.getProperty("user.dir") + camino);
