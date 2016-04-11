@@ -1,4 +1,5 @@
 import java.net.*;
+import java.util.Scanner;
 import java.io.*;
 
 public class Socket {
@@ -33,7 +34,7 @@ class ServidorHTTPSimple extends Thread{
 				
 				clientSocket = null;
 			    try {
-			        clientSocket = serverSocket.accept(); //Aceptando nueva conexion con cliente
+			        clientSocket = serverSocket.accept(); /**Aceptando nueva conexion con cliente*/
 			    } catch (IOException e) {
 			        System.err.println("Accept failed.");
 			    }
@@ -43,16 +44,18 @@ class ServidorHTTPSimple extends Thread{
 				BufferedReader in = new BufferedReader(out);
 
 				String textFromClient;
-				textFromClient = in.readLine(); //Lee texto del cliente
-				//System.out.println(textFromClient); 
+				textFromClient = in.readLine(); /**Lee texto del cliente*/
 				
-				//códigos de error
+				
+				
+				
+				
+				/**códigos de error*/
 				String camino=textFromClient;
 				camino=camino.replace("GET", "");
 				camino=camino.replace("HTTP", "");
 				camino=camino.replace(" ", "");
 				camino=camino.replace("/1.1", "");
-				System.out.println(camino);
 				
 				String textToClient = "";
 				if (camino.length()==1){
@@ -61,43 +64,34 @@ class ServidorHTTPSimple extends Thread{
 					camino=camino.replace("/", "\\");
 					File f = new File(System.getProperty("user.dir") + camino);
 					if(f.exists() && !f.isDirectory()) { 
+						textToClient = "HTTP/1.1 200 OK\r\n";//Cuerpo\n\n
+						/**Encabezados*/
+						String line = in.readLine();
+						while (!line.isEmpty()) {
+							System.out.println(line);
+							line = in.readLine();
+						}
+						
+						/**Existe el archivo*/
+						if (textFromClient.contains("GET")){
+							//agregar el cuerpo del GET
+							
+							textToClient += readFile(System.getProperty("user.dir") + camino);
+							textToClient += "\n\n";
+						} else if (textFromClient.contains("POST")){
+							//agregar el cuerpo del POST
+						}
+					} else if (f.exists() && f.isDirectory()){ 
 						textToClient = "HTTP/1.1 200 OK\r\n\r\nCuerpo\n\n";
+						/**Existe el directorio*/
 					}
 					else {
-						
+						textToClient = "ERROR 404\n\n";
 					}
 				}
 				
-				
-				String line = in.readLine();
-				while (!line.isEmpty()) {
-					System.out.println(line);
-					line = in.readLine();
-				}
-				
-				//GET y POST regresan los mismos headers. Lo que cambia es el cuerpo
-				System.out.print(System.getProperty("user.dir"));
-				if (System.getProperty("user.dir").contains(camino)){
-					
-				} else if (!System.getProperty("user.dir").contains(camino) && camino!="") {
-					textToClient = "ERROR 404\n\n";
-				}
-				
-				if (textFromClient.contains("GET")){
-					//agregar el cuerpo del GET
-				} else if (textFromClient.contains("POST")){
-					//agregar el cuerpo del POST
-
-			char[] inputBuffer = new char[clientSocket.getReceiveBufferSize()];
-
-			int inputMessageLength = in.read(inputBuffer, 0,clientSocket.getReceiveBufferSize());
-                     
-			String inputMsg = new String(inputBuffer, 0, inputMessageLength);
-			System.out.println(inputMsg);
-				}
-				
-				//out.print(textToClient);
-				clientSocket.getOutputStream().write(textToClient.getBytes("UTF-8")); //respuesta al cliente
+				/**respuesta al cliente*/
+				clientSocket.getOutputStream().write(textToClient.getBytes("UTF-8")); 
 
 				out.close();
 				in.close();
@@ -111,5 +105,22 @@ class ServidorHTTPSimple extends Thread{
 					break;
 			}
 		}
+	}
+	
+	private String readFile(String pathname) throws IOException {
+
+	    File file = new File(pathname);
+	    StringBuilder fileContents = new StringBuilder((int)file.length());
+	    Scanner scanner = new Scanner(file);
+	    String lineSeparator = "\n";
+
+	    try {
+	        while(scanner.hasNextLine()) {        
+	            fileContents.append(scanner.nextLine() + lineSeparator);
+	        }
+	        return fileContents.toString();
+	    } finally {
+	        scanner.close();
+	    }
 	}
 }
