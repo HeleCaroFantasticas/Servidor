@@ -81,6 +81,37 @@ class ServidorHTTPSimple extends Thread{
 							line = in.readLine();
 						}
 						
+			            String linea;
+			            linea = in.readLine();
+			            String request_method = line;
+			            System.out.println("HTTP-HEADER: " + line);
+			            linea = "";
+			            // looks for post data
+			            int postDataI = -1;
+			            while ((linea = in.readLine()) != null && (line.length() != 0)) {
+			                System.out.println("HTTP-HEADER: " + line);
+			                if (line.indexOf("Content-Length:") > -1) {
+			                    postDataI = new Integer(
+			                            line.substring(
+			                                    line.indexOf("Content-Length:") + 16,
+			                                    line.length())).intValue();
+			                }
+			            }
+			            String postData = "";
+			            // read the post data
+			            if (postDataI > 0) {
+			                char[] charArray = new char[postDataI];
+			                in.read(charArray, 0, postDataI);
+			                postData = new String(charArray);
+			                
+			                System.out.print("charArray: ");
+			                System.out.print(charArray);
+			                System.out.print("postdata: ");
+			                System.out.print(postData);
+			            }						
+						
+			            
+						
 						/**Existe el archivo*/
 						if (textFromClient.contains("GET")){
 							//agregar el cuerpo del GET
